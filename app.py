@@ -161,7 +161,7 @@ def get_data(cosmetics_name):
     frontSentence = "data:image/png;base64,"
     for x in result:
         del x["_id"]
-        x["image"] = "require(\"" + frontSentence + str(byteString_to_byte(x["image"][2:-1]))[2:-1] + "\")"
+        x["image"] = frontSentence + str(byteString_to_byte(x["image"][2:-1]))[2:-1]
         data.append(x)
     return jsonify(data)
 
