@@ -1,4 +1,5 @@
 import base64
+from unicodedata import category
 from flask import Flask, jsonify, request
 import urllib.request
 import urllib.error
@@ -185,6 +186,31 @@ def get_lip_gloss():
 def get_eye_shadow():
     return get_data("eye_shadow")
 
+############################################ 懶人包資料
+### 資料處理function
+def get_cosme_set_data(set_name,cosme_category):
+    ### convert byte to base64
+    def byteString_to_byte(data):
+        data=data.encode(encoding="ascii")
+        result2 = data.decode('unicode-escape').encode('ISO-8859-1')
+        base64Data = base64.b64encode(result2)
+        return base64Data
+    
+    collection = db["cosme_set"]
+    result = collection.find({"set_name":set_name,"product_category":cosme_category})
+    data = []
+    frontSentence = "data:image/png;base64,"
+    for x in result:
+        del x["_id"]
+        x["image"] = frontSentence + str(byteString_to_byte(x["image"][2:-1]))[2:-1]
+        data.append(x)
+    return jsonify(data)
+
+@app.route("/get-set",methods=["POST"])
+def get_set():
+    set_name = request.values["set_name"]
+    category_name = request.values["category_name"]
+    return get_cosme_set_data(set_name,category_name)
 
 if __name__=="__main__":
     app.run(host="0.0.0.0",debug=True)
