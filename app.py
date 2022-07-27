@@ -1,5 +1,4 @@
 import base64
-from unicodedata import category
 from flask import Flask, jsonify, request
 import urllib.request
 import urllib.error
@@ -17,6 +16,7 @@ db = client.cosme #選擇操作cosme資料庫
 def index():
     return jsonify({"success":True,"message":"It's face++ api."})
 
+############################################ 取得臉部分析資料
 ### 取得 face_analysis 的資料
 @app.route("/face_analysis",methods=["GET","POST"])
 def face_analysis():
@@ -147,7 +147,7 @@ def face_detect():
         print(e.read().decode('utf-8'))
 
 
-############################################################# 化妝品資料
+############################################ 化妝品資料
 ### 資料處理function
 def get_data(cosmetics_name):
     ### convert byte to base64
@@ -185,6 +185,43 @@ def get_lip_gloss():
 @app.route("/get-eyeshadow")
 def get_eye_shadow():
     return get_data("eye_shadow")
+
+### 取得香水資料
+@app.route("/get-perfume")
+def get_perfume():
+    return get_data("perfume")
+
+### 取得睫毛膏
+@app.route("/get-mascara")
+def get_mascara():
+    return get_data("mascara")
+
+### 取得眉筆
+@app.route("/get-eyebrow_pencil")
+def get_eyebrow_pencil():
+    return get_data("eyebrow_pencil")
+
+
+### 取得防曬
+@app.route("/get-sun_protection")
+def get_sun_protection():
+    return get_data("sun_protection")
+
+### 取得底妝
+@app.route("/get-base_makeup")
+def get_base_makeup():
+    return get_data("base_makeup")
+
+### 取得修容
+@app.route("/get-trimming")
+def get_trimming():
+    return get_data("Trimming")
+
+### 取得打亮
+@app.route("/get-light_up")
+def get_light_up():
+    return get_data("light_up")
+
 
 ############################################ 懶人包資料
 ### 資料處理function
