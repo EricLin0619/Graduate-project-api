@@ -281,6 +281,24 @@ def face_detect():
 ### 眼睛分析推薦
 @app.route("/get-eyesRecommend",methods=["POST"])
 def get_eyesRecommend():
+    eyes_type={}
+    eyes_type["BBAB"] = "杏眼"
+    eyes_type["BAAA"] = "杏眼"
+    eyes_type["BBAA"] = "杏眼"
+    eyes_type["BBBB"] = "狗狗無辜眼"
+    eyes_type["BBBA"] = "狗狗無辜眼"
+    eyes_type["BAAB"] = "狗狗無辜眼"
+    eyes_type["BABB"] = "狗狗無辜眼"
+    eyes_type["BABA"] = "狗狗無辜眼"
+    eyes_type["AAAB"] = "丹鳳眼"
+    eyes_type["ABAB"] = "丹鳳眼"
+    eyes_type["AABB"] = "細長眼"
+    eyes_type["ABBB"] = "細長眼"
+    eyes_type["ABBA"] = "桃花眼"
+    eyes_type["AABA"] = "桃花眼"
+    eyes_type["ABAA"] = "吊梢眼"
+    eyes_type["AAAA"] = "吊梢眼"
+    analysis_eyes_type = ""
     result = {}
     data = request.values["data"]
     eyes_analysisData = FacePlus_featuresOrigin(data)
@@ -297,26 +315,26 @@ def get_eyesRecommend():
     right_eye_31_y = -eyes_landmarkData["right_eye"]["right_eye_31"]["y"]
 
     if eye_width>eye_heigh:
-        result["1"] = "眼長"
+        analysis_eyes_type = analysis_eyes_type+"A"
     else:
-        result["1"] = "眼高"
+        analysis_eyes_type = analysis_eyes_type+"B"
     ######################################
     if int(eangulus_oculi_medialis) <= 45:
-        result["2"] = "尖銳"
+        analysis_eyes_type = analysis_eyes_type+"A"
     else:
-        result["2"] = "圓鈍"
+        analysis_eyes_type = analysis_eyes_type+"B"
     ######################################
     if right_eye_0_y > right_eye_31_y:
-        result["3"] = "眼尾高於眼頭"
+        analysis_eyes_type = analysis_eyes_type+"A"
     else:
-        result["3"] = "眼頭高於眼尾"
+        analysis_eyes_type = analysis_eyes_type+"B"
     ######################################
     if angle<=165:
-        result["4"] = "弧度大"
+        analysis_eyes_type = analysis_eyes_type+"A"
     else:
-        result["4"] = "平直"
+        analysis_eyes_type = analysis_eyes_type+"B"
 
-    return jsonify(result)
+    return jsonify({"眼睛種類":eyes_type[analysis_eyes_type]})
 
 ### 臉部分析推薦
 @app.route("/get-faceRecommend",methods=["POST"])
@@ -333,9 +351,6 @@ def get_faceRecommend():
     del result["_id"]
     result["face_example_image"] = "data:image/png;base64," + str(byteString_to_byte(result["face_example_image"][2:-1]))[2:-1]
     return jsonify(result)
-
-
-
 
 
 ############################################ 化妝品資料
