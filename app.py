@@ -6,6 +6,7 @@ import time
 import json
 import pymongo
 import certifi
+import math
 
 app=Flask(__name__)
 client = pymongo.MongoClient("mongodb+srv://Eric:zx50312zx@training.9vikg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",tlsCAFile=certifi.where())
@@ -17,13 +18,11 @@ def index():
     return jsonify({"success":True,"message":"It's face++ api."})
 
 ############################################ 取得臉部分析資料
-### 取得 face_analysis 的資料
-@app.route("/face_analysis",methods=["GET","POST"])
-def face_analysis():
+####### function
+def FacePlus_features(base64Data):
     ### get imgfile represented in base64 
     analysis_result={}
-    data = request.values["data"]
-    imgData = base64.b64decode(data)
+    imgData = base64.b64decode(base64Data)
     #print(type(imgData))
 
     http_url = 'https://api-cn.faceplusplus.com/facepp/v1/facialfeatures'
@@ -68,7 +67,7 @@ def face_analysis():
 
     try:
         # post data to server
-        resp = urllib.request.urlopen(req, timeout=5)
+        resp = urllib.request.urlopen(req, timeout=None)
         # get response
         qrcont = resp.read()
         # if you want to load as json, you should decode first,
@@ -85,14 +84,125 @@ def face_analysis():
     except urllib.error.HTTPError as e:
         print(e.read().decode('utf-8'))
 
-### 取得 face_detect 的資料
-@app.route("/face_detect",methods=["GET","POST"])
-def face_detect():
+def FacePlus_featuresOrigin(base64Data):
     ### get imgfile represented in base64 
-    data = request.values["data"]
-    imgData = base64.b64decode(data)
+    imgData = base64.b64decode(base64Data)
     #print(type(imgData))
 
+    http_url = 'https://api-cn.faceplusplus.com/facepp/v1/facialfeatures'
+    key = "0nzG98sy92I9MJeW_RwrSlxkTNiylvdJ"
+    secret = "tckC6RMYCSTD1DNRvnYsoe4XpLr4F_dN"
+
+    boundary = '----------%s' % hex(int(time.time() * 1000))
+    data = []
+    data.append('--%s' % boundary)
+    data.append('Content-Disposition: form-data; name="%s"\r\n' % 'api_key')
+    data.append(key)
+    data.append('--%s' % boundary)
+    data.append('Content-Disposition: form-data; name="%s"\r\n' % 'api_secret')
+    data.append(secret)
+    data.append('--%s' % boundary)
+    
+    data.append('Content-Disposition: form-data; name="%s"; filename=" "' % 'image_file')
+    data.append('Content-Type: %s\r\n' % 'application/octet-stream')
+    data.append(imgData)
+
+    data.append('--%s' % boundary)
+    data.append('Content-Disposition: form-data; name="%s"\r\n' % 'return_landmark')
+    data.append('1')
+    data.append('--%s' % boundary)
+    data.append('Content-Disposition: form-data; name="%s"\r\n' % 'return_attributes')
+    data.append(
+        "gender,age,smiling,headpose,facequality,blur,eyestatus,emotion,ethnicity,beauty,mouthstatus,eyegaze,skinstatus")
+    data.append('--%s--\r\n' % boundary)
+
+    for i, d in enumerate(data):
+        if isinstance(d, str):
+            data[i] = d.encode('utf-8')
+
+    http_body = b'\r\n'.join(data)
+
+    # build http request
+    req = urllib.request.Request(url=http_url, data=http_body)
+
+    # header
+    req.add_header('Content-Type', 'multipart/form-data; boundary=%s' % boundary)
+
+    try:
+        # post data to server
+        resp = urllib.request.urlopen(req, timeout=None)
+        # get response
+        qrcont = resp.read()
+        # if you want to load as json, you should decode first,
+        # for example: json.loads(qrount.decode('utf-8'))
+        #print(type(json.loads(qrcont.decode('utf-8'))))
+        qrcont = json.loads(qrcont.decode('utf-8'))
+        return qrcont["result"]
+        
+    except urllib.error.HTTPError as e:
+        print(e.read().decode('utf-8'))
+
+def FacePlus_eyesLandmarks(base64Data):
+    imgData = base64.b64decode(base64Data)
+    #print(type(imgData))
+
+    http_url = 'https://api-cn.faceplusplus.com/facepp/v1/face/thousandlandmark'
+    key = "0nzG98sy92I9MJeW_RwrSlxkTNiylvdJ"
+    secret = "tckC6RMYCSTD1DNRvnYsoe4XpLr4F_dN"
+
+    boundary = '----------%s' % hex(int(time.time() * 1000))
+    data = []
+    data.append('--%s' % boundary)
+    data.append('Content-Disposition: form-data; name="%s"\r\n' % 'api_key')
+    data.append(key)
+    data.append('--%s' % boundary)
+    data.append('Content-Disposition: form-data; name="%s"\r\n' % 'api_secret')
+    data.append(secret)
+    data.append('--%s' % boundary)
+    
+    data.append('Content-Disposition: form-data; name="%s"; filename=" "' % 'image_file')
+    data.append('Content-Type: %s\r\n' % 'application/octet-stream')
+    data.append(imgData)
+
+    data.append('--%s' % boundary)
+    data.append('Content-Disposition: form-data; name="%s"\r\n' % 'return_landmark')
+    data.append('right_eye')
+    data.append('--%s' % boundary)
+    data.append('Content-Disposition: form-data; name="%s"\r\n' % 'return_attributes')
+    data.append(
+        "gender,age,smiling,headpose,facequality,blur,eyestatus,emotion,ethnicity,beauty,mouthstatus,eyegaze,skinstatus")
+    data.append('--%s--\r\n' % boundary)
+
+    for i, d in enumerate(data):
+        if isinstance(d, str):
+            data[i] = d.encode('utf-8')
+
+    http_body = b'\r\n'.join(data)
+
+    # build http request
+    req = urllib.request.Request(url=http_url, data=http_body)
+
+    # header
+    req.add_header('Content-Type', 'multipart/form-data; boundary=%s' % boundary)
+
+    try:
+        # post data to server
+        resp = urllib.request.urlopen(req, timeout=None)
+        # get response
+        qrcont = resp.read()
+        # if you want to load as json, you should decode first,
+        # for example: json.loads(qrount.decode('utf-8'))
+        #print(type(json.loads(qrcont.decode('utf-8'))))
+        qrcont = json.loads(qrcont.decode('utf-8'))
+        
+        return qrcont['face']['landmark']
+    except urllib.error.HTTPError as e:
+        print(e.read().decode('utf-8'))
+
+def FacePLus_faceDetect(base64Data):
+    ### get imgfile represented in base64 
+    imgData = base64.b64decode(base64Data)
+    #print(type(imgData))
     http_url = 'https://api-cn.faceplusplus.com/facepp/v3/detect'
     key = "0nzG98sy92I9MJeW_RwrSlxkTNiylvdJ"
     secret = "tckC6RMYCSTD1DNRvnYsoe4XpLr4F_dN"
@@ -135,7 +245,7 @@ def face_detect():
 
     try:
         # post data to server
-        resp = urllib.request.urlopen(req, timeout=5)
+        resp = urllib.request.urlopen(req, timeout=None)
         # get response
         qrcont = resp.read()
         # if you want to load as json, you should decode first,
@@ -146,9 +256,90 @@ def face_detect():
     except urllib.error.HTTPError as e:
         print(e.read().decode('utf-8'))
 
+def cal_angle(point_1, point_2, point_3): 
+    a=math.sqrt((point_2[0]-point_3[0])*(point_2[0]-point_3[0])+(point_2[1]-point_3[1])*(point_2[1] - point_3[1]))
+    b=math.sqrt((point_1[0]-point_3[0])*(point_1[0]-point_3[0])+(point_1[1]-point_3[1])*(point_1[1] - point_3[1]))
+    c=math.sqrt((point_1[0]-point_2[0])*(point_1[0]-point_2[0])+(point_1[1]-point_2[1])*(point_1[1]-point_2[1]))
+    A=math.degrees(math.acos((a*a-b*b-c*c)/(-2*b*c)))
+    B=math.degrees(math.acos((b*b-a*a-c*c)/(-2*a*c)))
+    C=math.degrees(math.acos((c*c-a*a-b*b)/(-2*a*b)))
+    return B
+
+
+### 取得 face_analysis 的資料
+@app.route("/face_analysis",methods=["GET","POST"])
+def face_analysis():
+    data = request.values["data"]
+    return FacePlus_features(data)
+
+### 取得 face_detect 的資料
+@app.route("/face_detect",methods=["GET","POST"])
+def face_detect():
+    data = request.values["data"]
+    return FacePlus_features(data)
+
+### 眼睛分析推薦
+@app.route("/get-eyesRecommend",methods=["POST"])
+def get_eyesRecommend():
+    result = {}
+    data = request.values["data"]
+    eyes_analysisData = FacePlus_featuresOrigin(data)
+    eye_width = eyes_analysisData["eyes"]["eye_width"]
+    eye_heigh = eyes_analysisData["eyes"]["eye_height"]
+    eangulus_oculi_medialis = eyes_analysisData["eyes"]["angulus_oculi_medialis"]
+    ### landmark
+    eyes_landmarkData = FacePlus_eyesLandmarks(data)
+    right_eye_0 = (eyes_landmarkData["right_eye"]["right_eye_0"]["x"],eyes_landmarkData["right_eye"]["right_eye_0"]["y"])
+    right_eye_16 = (eyes_landmarkData["right_eye"]["right_eye_16"]["x"],eyes_landmarkData["right_eye"]["right_eye_16"]["y"])
+    right_eye_31 = (eyes_landmarkData["right_eye"]["right_eye_31"]["x"],eyes_landmarkData["right_eye"]["right_eye_31"]["y"])
+    angle = int(cal_angle(right_eye_0,right_eye_16,right_eye_31))
+    right_eye_0_y = -eyes_landmarkData["right_eye"]["right_eye_0"]["y"]
+    right_eye_31_y = -eyes_landmarkData["right_eye"]["right_eye_31"]["y"]
+
+    if eye_width>eye_heigh:
+        result["1"] = "眼長"
+    else:
+        result["1"] = "眼高"
+    ######################################
+    if int(eangulus_oculi_medialis) <= 45:
+        result["2"] = "尖銳"
+    else:
+        result["2"] = "圓鈍"
+    ######################################
+    if right_eye_0_y > right_eye_31_y:
+        result["3"] = "眼尾高於眼頭"
+    else:
+        result["3"] = "眼頭高於眼尾"
+    ######################################
+    if angle<=165:
+        result["4"] = "弧度大"
+    else:
+        result["4"] = "平直"
+
+    return jsonify(result)
+
+### 臉部分析推薦
+@app.route("/get-faceRecommend",methods=["POST"])
+def get_faceRecommend():
+    def byteString_to_byte(data):
+        data=data.encode(encoding="ascii")
+        result2 = data.decode('unicode-escape').encode('ISO-8859-1')
+        base64Data = base64.b64encode(result2)
+        return base64Data
+    data = request.values["data"]
+    faceCategory = FacePlus_featuresOrigin(data)["face"]["face_type"]
+    collection = db["face_type"]
+    result = collection.find_one({"type":faceCategory})
+    del result["_id"]
+    result["face_example_image"] = "data:image/png;base64," + str(byteString_to_byte(result["face_example_image"][2:-1]))[2:-1]
+    return jsonify(result)
+
+
+
+
 
 ############################################ 化妝品資料
-### 資料處理function
+####### function
 def get_data(cosmetics_name):
     ### convert byte to base64
     def byteString_to_byte(data):
@@ -201,7 +392,6 @@ def get_mascara():
 def get_eyebrow_pencil():
     return get_data("eyebrow_pencil")
 
-
 ### 取得防曬
 @app.route("/get-sun_protection")
 def get_sun_protection():
@@ -248,6 +438,7 @@ def get_set():
     set_name = request.values["set_name"]
     category_name = request.values["category_name"]
     return get_cosme_set_data(set_name,category_name)
+
 
 if __name__=="__main__":
     app.run(host="0.0.0.0",debug=True)
