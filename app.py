@@ -7,6 +7,7 @@ import json
 import pymongo
 import certifi
 import math
+import tinify
 
 app=Flask(__name__)
 client = pymongo.MongoClient("mongodb+srv://Eric:zx50312zx@training.9vikg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",tlsCAFile=certifi.where())
@@ -265,12 +266,22 @@ def cal_angle(point_1, point_2, point_3):
     C=math.degrees(math.acos((c*c-a*a-b*b)/(-2*a*b)))
     return B
 
+def byteString_to_byte(data):
+        data=data.encode(encoding="ascii")
+        result2 = data.decode('unicode-escape').encode('ISO-8859-1')
+        base64Data = base64.b64encode(result2)
+        return base64Data
 
 ### 取得 face_analysis 的資料
 @app.route("/face_analysis",methods=["GET","POST"])
 def face_analysis():
     data = request.values["data"]
-    return FacePlus_features(data)
+    data = base64.b64decode(data)
+    # data = str(data[2:-1])[2:-1]
+    tinify.key = "c10frTbWzgvTj7gbwwgKmNsJmnCXWgwh"
+    result_data = tinify.from_buffer(data).to_buffer() 
+    result_data =  byteString_to_byte((str(result_data))[2:-1])
+    return FacePlus_features(result_data)
 
 ### 取得 face_detect 的資料
 @app.route("/face_detect",methods=["GET","POST"])
@@ -314,7 +325,7 @@ def get_eyesRecommend():
     right_eye_0_y = -eyes_landmarkData["right_eye"]["right_eye_0"]["y"]
     right_eye_31_y = -eyes_landmarkData["right_eye"]["right_eye_31"]["y"]
 
-    if eye_width>eye_heigh:
+    if eye_width>eye_heigh*2:
         analysis_eyes_type = analysis_eyes_type+"A"
     else:
         analysis_eyes_type = analysis_eyes_type+"B"
