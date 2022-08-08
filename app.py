@@ -272,22 +272,25 @@ def byteString_to_byte(data):
         base64Data = base64.b64encode(result2)
         return base64Data
 
-### 取得 face_analysis 的資料
-@app.route("/face_analysis",methods=["GET","POST"])
-def face_analysis():
-    data = request.values["data"]
+def compressImg(data):
     data = base64.b64decode(data)
     # data = str(data[2:-1])[2:-1]
     tinify.key = "c10frTbWzgvTj7gbwwgKmNsJmnCXWgwh"
     result_data = tinify.from_buffer(data).to_buffer() 
     result_data =  byteString_to_byte((str(result_data))[2:-1])
-    return FacePlus_features(result_data)
+    return result_data
+
+### 取得 face_analysis 的資料
+@app.route("/face_analysis",methods=["GET","POST"])
+def face_analysis():
+    data = request.values["data"]
+    return FacePlus_features(compressImg(data))
 
 ### 取得 face_detect 的資料
 @app.route("/face_detect",methods=["GET","POST"])
 def face_detect():
     data = request.values["data"]
-    return FacePlus_features(data)
+    return FacePlus_features(compressImg(data))
 
 ### 眼睛分析推薦
 @app.route("/get-eyesRecommend",methods=["POST"])
@@ -312,12 +315,12 @@ def get_eyesRecommend():
     analysis_eyes_type = ""
     result = {}
     data = request.values["data"]
-    eyes_analysisData = FacePlus_featuresOrigin(data)
+    eyes_analysisData = FacePlus_featuresOrigin(compressImg(data))
     eye_width = eyes_analysisData["eyes"]["eye_width"]
     eye_heigh = eyes_analysisData["eyes"]["eye_height"]
     eangulus_oculi_medialis = eyes_analysisData["eyes"]["angulus_oculi_medialis"]
     ### landmark
-    eyes_landmarkData = FacePlus_eyesLandmarks(data)
+    eyes_landmarkData = FacePlus_eyesLandmarks(compressImg(data))
     right_eye_0 = (eyes_landmarkData["right_eye"]["right_eye_0"]["x"],eyes_landmarkData["right_eye"]["right_eye_0"]["y"])
     right_eye_16 = (eyes_landmarkData["right_eye"]["right_eye_16"]["x"],eyes_landmarkData["right_eye"]["right_eye_16"]["y"])
     right_eye_31 = (eyes_landmarkData["right_eye"]["right_eye_31"]["x"],eyes_landmarkData["right_eye"]["right_eye_31"]["y"])
@@ -350,13 +353,8 @@ def get_eyesRecommend():
 ### 臉部分析推薦
 @app.route("/get-faceRecommend",methods=["POST"])
 def get_faceRecommend():
-    def byteString_to_byte(data):
-        data=data.encode(encoding="ascii")
-        result2 = data.decode('unicode-escape').encode('ISO-8859-1')
-        base64Data = base64.b64encode(result2)
-        return base64Data
     data = request.values["data"]
-    faceCategory = FacePlus_featuresOrigin(data)["face"]["face_type"]
+    faceCategory = FacePlus_featuresOrigin(compressImg(data))["face"]["face_type"]
     collection = db["face_type"]
     result = collection.find_one({"type":faceCategory})
     del result["_id"]
