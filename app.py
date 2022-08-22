@@ -299,22 +299,22 @@ def face_detect():
 @app.route("/get-eyesRecommend",methods=["POST"])
 def get_eyesRecommend():
     eyes_type={}
-    eyes_type["BBAB"] = "杏眼"
-    eyes_type["BAAA"] = "杏眼"
-    eyes_type["BBAA"] = "杏眼"
+    eyes_type["BBAB"] = "清澈圓杏眼"
+    eyes_type["BAAA"] = "清澈圓杏眼"
+    eyes_type["BBAA"] = "清澈圓杏眼"
     eyes_type["BBBB"] = "狗狗無辜眼"
     eyes_type["BBBA"] = "狗狗無辜眼"
     eyes_type["BAAB"] = "狗狗無辜眼"
     eyes_type["BABB"] = "狗狗無辜眼"
     eyes_type["BABA"] = "狗狗無辜眼"
-    eyes_type["AAAB"] = "丹鳳眼"
-    eyes_type["ABAB"] = "丹鳳眼"
-    eyes_type["AABB"] = "細長眼"
-    eyes_type["ABBB"] = "細長眼"
-    eyes_type["ABBA"] = "桃花眼"
-    eyes_type["AABA"] = "桃花眼"
-    eyes_type["ABAA"] = "吊梢眼"
-    eyes_type["AAAA"] = "吊梢眼"
+    eyes_type["AAAB"] = "古典丹鳳眼"
+    eyes_type["ABAB"] = "古典丹鳳眼"
+    eyes_type["AABB"] = "媚絲柳葉眼"
+    eyes_type["ABBB"] = "媚絲柳葉眼"
+    eyes_type["ABBA"] = "含情桃花眼"
+    eyes_type["AABA"] = "含情桃花眼"
+    eyes_type["ABAA"] = "清冷吊梢眼"
+    eyes_type["AAAA"] = "清冷吊梢眼"
     analysis_eyes_type = ""
     result = {}
     data = request.values["data"]
@@ -351,7 +351,11 @@ def get_eyesRecommend():
     else:
         analysis_eyes_type = analysis_eyes_type+"B"
 
-    return jsonify({"眼睛種類":eyes_type[analysis_eyes_type]})
+    collection = db["eyes_type"]
+    result = collection.find_one({"name":eyes_type[analysis_eyes_type]})
+    del result["_id"]
+
+    return jsonify(result)
 
 ### 臉部分析推薦
 @app.route("/get-faceRecommend",methods=["POST"])
