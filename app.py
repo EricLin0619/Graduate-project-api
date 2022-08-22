@@ -1,5 +1,6 @@
 import base64
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import urllib.request
 import urllib.error
 import time
@@ -9,7 +10,9 @@ import certifi
 import math
 import tinify
 
+
 app=Flask(__name__)
+CORS(app)
 client = pymongo.MongoClient("mongodb+srv://Eric:zx50312zx@training.9vikg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",tlsCAFile=certifi.where())
 db = client.cosme #選擇操作cosme資料庫
 
@@ -359,6 +362,7 @@ def get_faceRecommend():
     result = collection.find_one({"type":faceCategory})
     del result["_id"]
     result["face_example_image"] = "data:image/png;base64," + str(byteString_to_byte(result["face_example_image"][2:-1]))[2:-1]
+    result["eyebrow_example_image"] = "data:image/png;base64," + str(byteString_to_byte(result["eyebrow_example_image"][2:-1]))[2:-1]
     return jsonify(result)
 
 
