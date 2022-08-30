@@ -369,6 +369,9 @@ def get_faceRecommend():
     result["eyebrow_example_image"] = "data:image/png;base64," + str(byteString_to_byte(result["eyebrow_example_image"][2:-1]))[2:-1]
     return jsonify(result)
 
+@app.route("/getResult",methods=["POST"])
+def get_result():
+    pass
 
 ############################################ 化妝品資料
 ####### function
@@ -383,8 +386,9 @@ def get_data(cosmetics_name):
     result = collection.find()
     data = []
     frontSentence = "data:image/png;base64,"
-    for x in result:
+    for id , x in enumerate(result):
         del x["_id"]
+        x["key"] = id+1
         x["image"] = frontSentence + str(byteString_to_byte(x["image"][2:-1]))[2:-1]
         data.append(x)
     return jsonify(data)
