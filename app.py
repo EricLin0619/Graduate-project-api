@@ -351,9 +351,11 @@ def get_eyesRecommend():
     else:
         analysis_eyes_type = analysis_eyes_type+"B"
 
+    #進資料庫取得資料
     collection = db["eyes_type"]
     result = collection.find_one({"name":eyes_type[analysis_eyes_type]})
     del result["_id"]
+    result["eyes_example_image"] = "data:image/png;base64," + str(byteString_to_byte(result["eyes_example_image"][2:-1]))[2:-1]
 
     return jsonify(result)
 
